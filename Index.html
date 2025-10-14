@@ -1,0 +1,4974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduVerse AI Terminal</title>
+    <style>
+        :root {
+            --primary: #0f0c29;
+            --secondary: #302b63;
+            --accent: #24243e;
+            --text: #ffffff;
+            --code-red: #ff5555;
+            --code-green: #50fa7b;
+            --code-blue: #8be9fd;
+            --code-purple: #bd93f9;
+            --code-yellow: #f1fa8c;
+            --code-gray: #6272a4;
+            --terminal-bg: #0f0c29;
+            --terminal-border: #302b63;
+            --cursor: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Fira Code', 'Courier New', monospace;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--code-green);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-item {
+            color: var(--text);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--code-yellow);
+        }
+
+        .terminal-container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .terminal-header {
+            background: var(--accent);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .red {
+            background: var(--code-red);
+        }
+
+        .yellow {
+            background: var(--code-yellow);
+        }
+
+        .green {
+            background: var(--code-green);
+        }
+
+        .terminal-title {
+            color: var(--text);
+            font-size: 0.9rem;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .terminal-body {
+            padding: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--code-gray) var(--terminal-bg);
+        }
+
+        .terminal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-body::-webkit-scrollbar-track {
+            background: var(--terminal-bg);
+        }
+
+        .terminal-body::-webkit-scrollbar-thumb {
+            background: var(--code-gray);
+            border-radius: 4px;
+        }
+
+        .terminal-body::-webkit-scrollbar-thumb:hover {
+            background: var(--code-blue);
+        }
+
+        .terminal-line {
+            margin: 5px 0;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .prompt {
+            color: var(--code-green);
+            margin-right: 10px;
+        }
+
+        .code {
+            color: var(--text);
+            white-space: pre-wrap;
+        }
+
+        .comment {
+            color: var(--code-gray);
+        }
+
+        .keyword {
+            color: var(--code-purple);
+        }
+
+        .string {
+            color: var(--code-yellow);
+        }
+
+        .function {
+            color: var(--code-blue);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--cursor);
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            from, to { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--code-blue);
+        }
+
+        .feature-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--code-yellow);
+        }
+
+        .feature-desc {
+            color: var(--text);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .footer {
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 30px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0;
+        }
+
+        .footer-link {
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-link:hover {
+            color: var(--code-green);
+        }
+
+        .copyright {
+            color: var(--code-gray);
+            font-size: 0.8rem;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .terminal-body {
+                height: 300px;
+                font-size: 0.85rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animation classes */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .typing-animation {
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typing 3s steps(40, end) forwards;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .glow {
+            text-shadow: 0 0 10px var(--code-blue);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px var(--code-blue); }
+            to { text-shadow: 0 0 20px var(--code-green); }
+        }
+
+        /* 3D effect for cards */
+        .card-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+
+        .card-3d:hover {
+            transform: rotateY(5deg) rotateX(5deg) scale(1.02);
+        }
+
+        /* Custom scrollbar for terminal */
+        .terminal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-body::-webkit-scrollbar-track {
+            background: var(--terminal-bg);
+        }
+
+        .terminal-body::-webkit-scrollbar-thumb {
+            background: var(--code-gray);
+            border-radius: 4px;
+        }
+
+        .terminal-body::-webkit-scrollbar-thumb:hover {
+            background: var(--code-blue);
+        }
+
+        /* Loading animation */
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--code-green);
+            margin: 0 2px;
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Floating elements */
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Code highlight animation */
+        .highlight-code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+            animation: highlight 1s ease-in-out;
+        }
+
+        @keyframes highlight {
+            0% { background: rgba(255, 255, 255, 0.1); }
+            50% { background: rgba(255, 255, 255, 0.3); }
+            100% { background: rgba(255, 255, 255, 0.1); }
+        }
+
+        /* Interactive elements */
+        .interactive-btn {
+            background: transparent;
+            border: 1px solid var(--code-blue);
+            color: var(--code-blue);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .interactive-btn:hover {
+            background: var(--code-blue);
+            color: var(--terminal-bg);
+            transform: scale(1.05);
+        }
+
+        /* Notification badge */
+        .notification-badge {
+            position: relative;
+            display: inline-block;
+        }
+
+        .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--code-red);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--code-green);
+        }
+
+        .close-modal {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--code-red);
+        }
+
+        .modal-body {
+            color: var(--text);
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--code-green), var(--code-blue));
+            width: 0%;
+            transition: width 1s ease;
+        }
+
+        /* Chart visualization */
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .chart-bar {
+            width: 10px;
+            background: linear-gradient(to top, var(--code-blue), var(--code-green));
+            border-radius: 4px 4px 0 0;
+            transition: height 0.5s ease;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .terminal-body {
+                height: 250px;
+                font-size: 0.8rem;
+            }
+            
+            .feature-title {
+                font-size: 1rem;
+            }
+            
+            .nav-item {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Dark mode toggle */
+        .theme-toggle {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            color: var(--code-yellow);
+        }
+
+        /* AI assistant animation */
+        .ai-assistant {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .ai-assistant:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .ai-assistant i {
+            font-size: 1.5rem;
+            color: var(--code-blue);
+        }
+
+        /* Floating notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 300px;
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.5s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .notification-title {
+            color: var(--code-green);
+            font-weight: bold;
+        }
+
+        .notification-close {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .notification-content {
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        /* Terminal command animation */
+        .command-animation {
+            animation: commandType 1s ease-in-out;
+        }
+
+        @keyframes commandType {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(90deg, var(--code-green), var(--code-blue), var(--code-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
+        }
+
+        /* Wave animation */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCwxMDAgTDEwMCwxMDAgTDkwLDUwIEwwLDUwIFoiIGZpbGw9IiMwZjBjMjkiLz48L3N2Zz4=');
+            background-size: 100% 100%;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        /* Grid pattern background */
+        .grid-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Particle animation */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: float 10s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(5px, 5px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        /* Typing effect */
+        .typing-effect {
+            overflow: hidden;
+            border-right: 2px solid var(--cursor);
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 1s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: var(--cursor); }
+            50% { border-color: transparent; }
+        }
+
+        /* Glitch effect */
+        .glitch {
+            position: relative;
+            color: var(--text);
+            font-weight: bold;
+            animation: glitch 1s linear infinite;
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 0 0 5px var(--code-blue), 0 0 10px var(--code-blue); }
+            25% { text-shadow: 0 0 5px var(--code-green), 0 0 10px var(--code-green); }
+            50% { text-shadow: 0 0 5px var(--code-purple), 0 0 10px var(--code-purple); }
+            75% { text-shadow: 0 0 5px var(--code-yellow), 0 0 10px var(--code-yellow); }
+            100% { text-shadow: 0 0 5px var(--code-blue), 0 0 10px var(--code-blue); }
+        }
+
+        /* Pulse effect */
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        /* Zoom in effect */
+        .zoom-in {
+            animation: zoomIn 0.5s ease;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Slide in effect */
+        .slide-in {
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Fade in up effect */
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Bounce in effect */
+        .bounce-in {
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Rotate effect */
+        .rotate {
+            animation: rotate 2s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scale effect */
+        .scale {
+            animation: scale 0.5s ease;
+        }
+
+        @keyframes scale {
+            from { transform: scale(0.8); }
+            to { transform: scale(1); }
+        }
+
+        /* Shake effect */
+        .shake {
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Flash effect */
+        .flash {
+            animation: flash 0.5s ease;
+        }
+
+        @keyframes flash {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Spin effect */
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Flip effect */
+        .flip {
+            animation: flip 0.5s ease;
+        }
+
+        @keyframes flip {
+            from { transform: perspective(400px) rotateY(0deg); }
+            to { transform: perspective(400px) rotateY(180deg); }
+        }
+
+        /* Tada effect */
+        .tada {
+            animation: tada 0.5s ease;
+        }
+
+        @keyframes tada {
+            from { transform: scale(1); }
+            10% { transform: scale(0.9) rotate(-3deg); }
+            20% { transform: scale(0.9) rotate(-3deg); }
+            30% { transform: scale(1.1) rotate(3deg); }
+            40% { transform: scale(1.1) rotate(-3deg); }
+            50% { transform: scale(1.1) rotate(3deg); }
+            60% { transform: scale(1.1) rotate(-3deg); }
+            70% { transform: scale(1.1) rotate(3deg); }
+            80% { transform: scale(1.1) rotate(-3deg); }
+            90% { transform: scale(1.1) rotate(3deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        /* Wobble effect */
+        .wobble {
+            animation: wobble 0.5s ease;
+        }
+
+        @keyframes wobble {
+            0% { transform: translateX(0%); }
+            15% { transform: translateX(-25%) rotate(-5deg); }
+            30% { transform: translateX(20%) rotate(3deg); }
+            45% { transform: translateX(-15%) rotate(-3deg); }
+            60% { transform: translateX(10%) rotate(2deg); }
+            75% { transform: translateX(-5%) rotate(-1deg); }
+            100% { transform: translateX(0%); }
+        }
+
+        /* Jello effect */
+        .jello {
+            animation: jello 0.5s ease;
+        }
+
+        @keyframes jello {
+            from, 11.1%, 100% { transform: translateX(0); }
+            22.2% { transform: translateX(-10px) rotate(-5deg); }
+            33.3% { transform: translateX(10px) rotate(5deg); }
+            44.4% { transform: translateX(-10px) rotate(-5deg); }
+            55.5% { transform: translateX(10px) rotate(5deg); }
+            66.6% { transform: translateX(-10px) rotate(-5deg); }
+            77.7% { transform: translateX(10px) rotate(5deg); }
+            88.8% { transform: translateX(-10px) rotate(-5deg); }
+        }
+
+        /* Rubber band effect */
+        .rubber-band {
+            animation: rubberBand 0.5s ease;
+        }
+
+        @keyframes rubberBand {
+            from { transform: scale(1); }
+            30% { transform: scaleX(1.25) scaleY(0.75); }
+            40% { transform: scaleX(0.75) scaleY(1.25); }
+            50% { transform: scaleX(1.15) scaleY(0.85); }
+            65% { transform: scaleX(0.95) scaleY(1.05); }
+            75% { transform: scaleX(1.05) scaleY(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        /* Heartbeat effect */
+        .heartbeat {
+            animation: heartbeat 1s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.3); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.3); }
+            70% { transform: scale(1); }
+        }
+
+        /* Blink effect */
+        .blink {
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            from, to { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Pop effect */
+        .pop {
+            animation: pop 0.5s ease;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Float effect */
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Pulse effect */
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        /* Shine effect */
+        .shine {
+            animation: shine 2s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Ripple effect */
+        .ripple {
+            animation: ripple 1s ease-in-out infinite;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        /* Rain effect */
+        .rain {
+            animation: rain 1s ease-in-out infinite;
+        }
+
+        @keyframes rain {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        /* Snow effect */
+        .snow {
+            animation: snow 1s ease-in-out infinite;
+        }
+
+        @keyframes snow {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(5px); }
+        }
+
+        /* Fire effect */
+        .fire {
+            animation: fire 1s ease-in-out infinite;
+        }
+
+        @keyframes fire {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Water effect */
+        .water {
+            animation: water 1s ease-in-out infinite;
+        }
+
+        @keyframes water {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Wind effect */
+        .wind {
+            animation: wind 1s ease-in-out infinite;
+        }
+
+        @keyframes wind {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Cloud effect */
+        .cloud {
+            animation: cloud 1s ease-in-out infinite;
+        }
+
+        @keyframes cloud {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Sun effect */
+        .sun {
+            animation: sun 1s ease-in-out infinite;
+        }
+
+        @keyframes sun {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Moon effect */
+        .moon {
+            animation: moon 1s ease-in-out infinite;
+        }
+
+        @keyframes moon {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Star effect */
+        .star {
+            animation: star 1s ease-in-out infinite;
+        }
+
+        @keyframes star {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Galaxy effect */
+        .galaxy {
+            animation: galaxy 1s ease-in-out infinite;
+        }
+
+        @keyframes galaxy {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Universe effect */
+        .universe {
+            animation: universe 1s ease-in-out infinite;
+        }
+
+        @keyframes universe {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Space effect */
+        .space {
+            animation: space 1s ease-in-out infinite;
+        }
+
+        @keyframes space {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Planet effect */
+        .planet {
+            animation: planet 1s ease-in-out infinite;
+        }
+
+        @keyframes planet {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Rocket effect */
+        .rocket {
+            animation: rocket 1s ease-in-out infinite;
+        }
+
+        @keyframes rocket {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Satellite effect */
+        .satellite {
+            animation: satellite 1s ease-in-out infinite;
+        }
+
+        @keyframes satellite {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Astronaut effect */
+        .astronaut {
+            animation: astronaut 1s ease-in-out infinite;
+        }
+
+        @keyframes astronaut {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Spaceship effect */
+        .spaceship {
+            animation: spaceship 1s ease-in-out infinite;
+        }
+
+        @keyframes spaceship {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Alien effect */
+        .alien {
+            animation: alien 1s ease-in-out infinite;
+        }
+
+        @keyframes alien {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* UFO effect */
+        .ufo {
+            animation: ufo 1s ease-in-out infinite;
+        }
+
+        @keyframes ufo {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Meteor effect */
+        .meteor {
+            animation: meteor 1s ease-in-out infinite;
+        }
+
+        @keyframes meteor {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Comet effect */
+        .comet {
+            animation: comet 1s ease-in-out infinite;
+        }
+
+        @keyframes comet {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Asteroid effect */
+        .asteroid {
+            animation: asteroid 1s ease-in-out infinite;
+        }
+
+        @keyframes asteroid {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Black hole effect */
+        .black-hole {
+            animation: black-hole 1s ease-in-out infinite;
+        }
+
+        @keyframes black-hole {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Nebula effect */
+        .nebula {
+            animation: nebula 1s ease-in-out infinite;
+        }
+
+        @keyframes nebula {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Galaxy cluster effect */
+        .galaxy-cluster {
+            animation: galaxy-cluster 1s ease-in-out infinite;
+        }
+
+        @keyframes galaxy-cluster {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Supernova effect */
+        .supernova {
+            animation: supernova 1s ease-in-out infinite;
+        }
+
+        @keyframes supernova {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Quasar effect */
+        .quasar {
+            animation: quasar 1s ease-in-out infinite;
+        }
+
+        @keyframes quasar {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Pulsar effect */
+        .pulsar {
+            animation: pulsar 1s ease-in-out infinite;
+        }
+
+        @keyframes pulsar {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Neutron star effect */
+        .neutron-star {
+            animation: neutron-star 1s ease-in-out infinite;
+        }
+
+        @keyframes neutron-star {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* White dwarf effect */
+        .white-dwarf {
+            animation: white-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes white-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Red giant effect */
+        .red-giant {
+            animation: red-giant 1s ease-in-out infinite;
+        }
+
+        @keyframes red-giant {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Blue giant effect */
+        .blue-giant {
+            animation: blue-giant 1s ease-in-out infinite;
+        }
+
+        @keyframes blue-giant {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Yellow dwarf effect */
+        .yellow-dwarf {
+            animation: yellow-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes yellow-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Brown dwarf effect */
+        .brown-dwarf {
+            animation: brown-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes brown-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Orange dwarf effect */
+        .orange-dwarf {
+            animation: orange-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes orange-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Green dwarf effect */
+        .green-dwarf {
+            animation: green-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes green-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Purple dwarf effect */
+        .purple-dwarf {
+            animation: purple-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes purple-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Pink dwarf effect */
+        .pink-dwarf {
+            animation: pink-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes pink-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Cyan dwarf effect */
+        .cyan-dwarf {
+            animation: cyan-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes cyan-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Magenta dwarf effect */
+        .magenta-dwarf {
+            animation: magenta-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes magenta-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Lime dwarf effect */
+        .lime-dwarf {
+            animation: lime-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes lime-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Teal dwarf effect */
+        .teal-dwarf {
+            animation: teal-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes teal-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Indigo dwarf effect */
+        .indigo-dwarf {
+            animation: indigo-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes indigo-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Violet dwarf effect */
+        .violet-dwarf {
+            animation: violet-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes violet-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Rainbow dwarf effect */
+        .rainbow-dwarf {
+            animation: rainbow-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes rainbow-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Multicolor dwarf effect */
+        .multicolor-dwarf {
+            animation: multicolor-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes multicolor-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Gradient dwarf effect */
+        .gradient-dwarf {
+            animation: gradient-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes gradient-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Pattern dwarf effect */
+        .pattern-dwarf {
+            animation: pattern-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes pattern-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Texture dwarf effect */
+        .texture-dwarf {
+            animation: texture-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes texture-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Shadow dwarf effect */
+        .shadow-dwarf {
+            animation: shadow-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes shadow-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glow dwarf effect */
+        .glow-dwarf {
+            animation: glow-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glow-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Sparkle dwarf effect */
+        .sparkle-dwarf {
+            animation: sparkle-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes sparkle-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Twinkle dwarf effect */
+        .twinkle-dwarf {
+            animation: twinkle-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes twinkle-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Flash dwarf effect */
+        .flash-dwarf {
+            animation: flash-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes flash-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Pulse dwarf effect */
+        .pulse-dwarf {
+            animation: pulse-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Beat dwarf effect */
+        .beat-dwarf {
+            animation: beat-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes beat-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Throb dwarf effect */
+        .throb-dwarf {
+            animation: throb-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes throb-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Vibrate dwarf effect */
+        .vibrate-dwarf {
+            animation: vibrate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes vibrate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Shake dwarf effect */
+        .shake-dwarf {
+            animation: shake-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes shake-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Wiggle dwarf effect */
+        .wiggle-dwarf {
+            animation: wiggle-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes wiggle-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Jiggle dwarf effect */
+        .jiggle-dwarf {
+            animation: jiggle-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes jiggle-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Bounce dwarf effect */
+        .bounce-dwarf {
+            animation: bounce-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Jump dwarf effect */
+        .jump-dwarf {
+            animation: jump-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes jump-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Leap dwarf effect */
+        .leap-dwarf {
+            animation: leap-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes leap-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hop dwarf effect */
+        .hop-dwarf {
+            animation: hop-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hop-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Skip dwarf effect */
+        .skip-dwarf {
+            animation: skip-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes skip-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Run dwarf effect */
+        .run-dwarf {
+            animation: run-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes run-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Walk dwarf effect */
+        .walk-dwarf {
+            animation: walk-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes walk-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Crawl dwarf effect */
+        .crawl-dwarf {
+            animation: crawl-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes crawl-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Roll dwarf effect */
+        .roll-dwarf {
+            animation: roll-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes roll-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Slide dwarf effect */
+        .slide-dwarf {
+            animation: slide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes slide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Glide dwarf effect */
+        .glide-dwarf {
+            animation: glide-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes glide-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Float dwarf effect */
+        .float-dwarf {
+            animation: float-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes float-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Drift dwarf effect */
+        .drift-dwarf {
+            animation: drift-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes drift-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hover dwarf effect */
+        .hover-dwarf {
+            animation: hover-dwarf 1s ease-in-out infinite;
+        }
+
+
+              @keyframes hover-dwarf {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Levitate dwarf effect */
+        .levitate-dwarf {
+            animation: levitate-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes levitate-dwarf {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Fly dwarf effect */
+        .fly-dwarf {
+            animation: fly-dwarf 1s ease-in-out infinite;
+        }
+
+        @keyframes fly-dwarf {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(10px, -10px); }
+            50% { transform: translate(20px, -20px); }
+            75% { transform: translate(10px, -10px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* Soar dwarf effect */
+        .soar-dwarf {
+            animation: soar-dwarf 2s ease-in-out infinite;
+        }
+
+        @keyframes soar-dwarf {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        /* Terminal specific animations */
+        .terminal-pulse {
+            animation: terminalPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes terminalPulse {
+            0% { box-shadow: 0 0 0 0 rgba(139, 233, 253, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(139, 233, 253, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 233, 253, 0); }
+        }
+
+        .terminal-glow {
+            text-shadow: 0 0 10px var(--code-blue);
+            animation: terminalGlow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes terminalGlow {
+            from { text-shadow: 0 0 5px var(--code-blue); }
+            to { text-shadow: 0 0 20px var(--code-green), 0 0 30px var(--code-purple); }
+        }
+
+        /* AI typing animation */
+        .ai-typing {
+            overflow: hidden;
+            border-right: 2px solid var(--cursor);
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: 
+                typing 3.5s steps(40, end),
+                blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: var(--cursor); }
+            50% { border-color: transparent; }
+        }
+
+        /* Feature card hover effects */
+        .feature-card:hover .feature-icon {
+            transform: scale(1.2) rotate(10deg);
+            transition: transform 0.3s ease;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--code-gray);
+            border-top: 2px solid var(--code-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Notification pulse */
+        .notification-pulse {
+            animation: notificationPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes notificationPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 85, 85, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 85, 85, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 85, 85, 0); }
+        }
+
+        /* Code syntax highlighting */
+        .syntax-comment { color: var(--code-gray); font-style: italic; }
+        .syntax-keyword { color: var(--code-purple); font-weight: bold; }
+        .syntax-string { color: var(--code-yellow); }
+        .syntax-number { color: var(--code-green); }
+        .syntax-function { color: var(--code-blue); }
+        .syntax-variable { color: var(--text); }
+        .syntax-operator { color: var(--code-red); }
+
+        /* Responsive terminal */
+        .terminal-responsive {
+            width: 100%;
+            height: auto;
+            min-height: 300px;
+        }
+
+        /* Mobile menu */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .nav {
+                position: fixed;
+                top: 80px;
+                left: 0;
+                width: 100%;
+                background: var(--terminal-bg);
+                border-top: 1px solid var(--terminal-border);
+                border-bottom: 1px solid var(--terminal-border);
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 0;
+                transform: translateY(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .nav.active {
+                transform: translateY(0);
+            }
+            
+            .nav-item {
+                width: 100%;
+                text-align: center;
+                padding: 12px 0;
+            }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .terminal-container {
+                border: 1px solid black;
+                box-shadow: none;
+            }
+            
+            .stars, .particles, .grid-pattern, .wave {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Stars background -->
+    <div class="stars" id="stars"></div>
+    <div class="particles" id="particles"></div>
+    <div class="grid-pattern"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header class="header fade-in visible">
+            <div class="logo">
+                <span class="glitch">EduVerse</span>
+                <span class="terminal-pulse">⚡</span>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+            <nav class="nav" id="mainNav">
+                <a href="#terminal" class="nav-item">Terminal</a>
+                <a href="#features" class="nav-item">AI Tools</a>
+                <a href="#community" class="nav-item">Community</a>
+                <a href="#marketplace" class="nav-item">Marketplace</a>
+                <a href="#health" class="nav-item">Health</a>
+                <a href="#career" class="nav-item">Career</a>
+            </nav>
+        </header>
+
+        <!-- Terminal Section -->
+        <section id="terminal" class="fade-in visible">
+            <div class="terminal-container card-3d">
+                <div class="terminal-header">
+                    <div class="terminal-buttons">
+                        <div class="button red"></div>
+                        <div class="button yellow"></div>
+                        <div class="button green"></div>
+                    </div>
+                    <div class="terminal-title">EduVerse AI Terminal v2.1.0</div>
+                </div>
+                <div class="terminal-body" id="terminalOutput">
+                    <div class="terminal-line">
+                        <span class="prompt">user@eduv</span><span class="syntax-operator">:</span><span class="syntax-variable">~</span><span class="syntax-operator">$</span>
+                        <span class="code typing-effect">Welcome to EduVerse AI Terminal</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">user@eduv</span><span class="syntax-operator">:</span><span class="syntax-variable">~</span><span class="syntax-operator">$</span>
+                        <span class="code">Initializing AI-powered student ecosystem...</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">user@eduv</span><span class="syntax-operator">:</span><span class="syntax-variable">~</span><span class="syntax-operator">$</span>
+                        <span class="code">Loading modules: <span class="syntax-keyword">Academic</span>, <span class="syntax-keyword">Social</span>, <span class="syntax-keyword">Career</span>, <span class="syntax-keyword">Health</span></span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">user@eduv</span><span class="syntax-operator">:</span><span class="syntax-variable">~</span><span class="syntax-operator">$</span>
+                        <span class="code">Connected to <span class="syntax-string">AI Services</span> (TensorFlow v2.8.0)</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">user@eduv</span><span class="syntax-operator">:</span><span class="syntax-variable">~</span><span class="syntax-operator">$</span>
+                        <span class="code">System ready. Type <span class="syntax-keyword">help</span> for available commands.</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">user@eduv</span><span class="syntax-operator">:</span><span class="syntax-variable">~</span><span class="syntax-operator">$</span>
+                        <span class="code ai-typing" id="aiTypingText">AI Assistant activated. How can I help you today?</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section id="features" class="fade-in visible">
+            <h2 class="gradient-text" style="text-align: center; margin-bottom: 30px; font-size: 2rem;">
+                🚀 AI-Powered Features
+            </h2>
+            <div class="features-grid">
+                <!-- AI Mock Interview -->
+                <div class="feature-card card-3d" onclick="showFeatureModal('AI Mock Interview', 'Practice real interview scenarios with AI feedback on your responses, body language, and technical skills.')">
+                    <div class="feature-icon">🎤</div>
+                    <h3 class="feature-title">AI Mock Interview</h3>
+                    <p class="feature-desc">Role-specific practice sessions with behavioral analysis and technical feedback.</p>
+                    <button class="interactive-btn">Explore</button>
+                </div>
+
+                <!-- AI Resume Analyzer -->
+                <div class="feature-card card-3d" onclick="showFeatureModal('AI Resume Builder', 'AI analyzes your skills and experience to create professional, ATS-optimized resumes.')">
+                    <div class="feature-icon">📄</div>
+                    <h3 class="feature-title">AI Resume Builder</h3>
+                    <p class="feature-desc">Skill-based template generation with LinkedIn integration and cover letter creation.</p>
+                    <button class="interactive-btn">Explore</button>
+                </div>
+
+                <!-- AI Health Assistant -->
+                <div class="feature-card card-3d" onclick="showFeatureModal('AI Health Assistant', 'Monitor stress levels, sleep patterns, and provide personalized wellness recommendations.')">
+                    <div class="feature-icon">❤️</div>
+                    <h3 class="feature-title">AI Health Assistant</h3>
+                    <p class="feature-desc">Stress monitoring, sleep analysis, nutrition planning, and mental health resources.</p>
+                    <button class="interactive-btn">Explore</button>
+                </div>
+
+                <!-- Smart Study Hub -->
+                <div class="feature-card card-3d" onclick="showFeatureModal('Smart Study Hub', 'AI-powered notes generation, flashcards, and collaborative whiteboard sessions.')">
+                    <div class="feature-icon">📚</div>
+                    <h3 class="feature-title">Smart Study Hub</h3>
+                    <p class="feature-desc">Convert lectures to organized notes, create mind maps, and collaborate in real-time.</p>
+                    <button class="interactive-btn">Explore</button>
+                </div>
+
+                <!-- Student Marketplace -->
+                <div class="feature-card card-3d" onclick="showFeatureModal('Student Marketplace', 'Buy, sell, and trade digital products, services, and physical goods with fellow students.')">
+                    <div class="feature-icon">🛒</div>
+                    <h3 class="feature-title">Student Marketplace</h3>
+                    <p class="feature-desc">Digital products, tutoring services, textbooks, and rental equipment marketplace.</p>
+                    <button class="interactive-btn">Explore</button>
+                </div>
+
+                <!-- Community Chat -->
+                <div class="feature-card card-3d" onclick="showFeatureModal('Community Chat', 'AI-powered study groups, project matchmaking, and expert connect features.')">
+                    <div class="feature-icon">💬</div>
+                    <h3 class="feature-title">Community Chat</h3>
+                    <p class="feature-desc">Interest-based clusters, video study rooms, and campus event discovery.</p>
+                    <button class="interactive-btn">Explore</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart Visualization -->
+        <section class="fade-in visible">
+            <h3 style="text-align: center; margin: 30px 0; color: var(--code-green);">📊 Performance Analytics</h3>
+            <div class="chart-container">
+                <div class="chart-line" id="chartLine">
+                    <!-- Chart bars will be generated by JavaScript -->
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar" style="width: 75%;"></div>
+            </div>
+            <p style="text-align: center; color: var(--code-gray);">Academic Performance: 75% • Next Goal: 85%</p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer fade-in visible">
+            <div class="footer-links">
+                <a href="#" class="footer-link">Privacy Policy</a>
+                <a href="#" class="footer-link">Terms of Service</a>
+                <a href="#" class="footer-link">Support</a>
+                <a href="#" class="footer-link">API Documentation</a>
+            </div>
+            <p class="copyright">© 2025 EduVerse AI. All rights reserved. Built with ❤️ for students.</p>
+        </footer>
+    </div>
+
+    <!-- AI Assistant Floating Button -->
+    <div class="ai-assistant" id="aiAssistant" title="AI Assistant">
+        <span>🤖</span>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-header">
+            <span class="notification-title">New Feature Available!</span>
+            <button class="notification-close" onclick="closeNotification()">×</button>
+        </div>
+        <div class="notification-content">
+            Try our new AI Mock Interview feature with real-time feedback!
+        </div>
+    </div>
+
+    <!-- Feature Modal -->
+    <div class="modal" id="featureModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Feature Details</h3>
+                <button class="close-modal" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalContent">
+                Feature description will appear here.
+            </div>
+            <div class="modal-footer">
+                <button class="interactive-btn" onclick="closeModal()">Close</button>
+                <button class="interactive-btn" style="background: var(--code-green); color: var(--terminal-bg);">Try Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate stars background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 150;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Generate particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.width = Math.random() * 10 + 5 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = Math.random() * 10 + 10 + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Create chart bars
+        function createChart() {
+            const chartLine = document.getElementById('chartLine');
+            const subjects = ['Math', 'Science', 'English', 'History', 'Art', 'CS'];
+            const scores = [85, 92, 78, 88, 95, 82];
+            
+            chartLine.innerHTML = '';
+            subjects.forEach((subject, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = scores[index] + '%';
+                bar.title = `${subject}: ${scores[index]}%`;
+                chartLine.appendChild(bar);
+            });
+        }
+
+        // Terminal typing simulation
+        function simulateTerminal() {
+            const commands = [
+                'npm install eduv-core --save',
+                'git clone https://github.com/eduv/ai-platform.git',
+                'docker-compose up --build',
+                'node server.js --port 3000',
+                'eduv-cli --init --student-profile'
+            ];
+            
+            let currentIndex = 0;
+            const terminalOutput = document.getElementById('terminalOutput');
+            
+            function addCommand() {
+                if (currentIndex < commands.length) {
+                    const line = document.createElement('div');
+                    line.className = 'terminal-line command-animation';
+                    line.innerHTML = `
+                        <span class="prompt">user@eduv</span><span class="syntax-operator">:</span><span class="syntax-variable">~</span><span class="syntax-operator">$</span>
+                        <span class="code">${commands[currentIndex]}</span>
+                    `;
+                    terminalOutput.appendChild(line);
+                    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                    currentIndex++;
+                    setTimeout(addCommand, 2000);
+                }
+            }
+            
+            setTimeout(addCommand, 5000);
+        }
+
+        // Show notification
+        function showNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Close notification
+        function closeNotification() {
+            document.getElementById('notification').classList.remove('show');
+        }
+
+        // Show feature modal
+        function showFeatureModal(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').textContent = content;
+            document.getElementById('featureModal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('featureModal').classList.remove('active');
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const nav = document.getElementById('mainNav');
+            nav.classList.toggle('active');
+        }
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', function() {
+            createStars();
+            createParticles();
+            createChart();
+            simulateTerminal();
+            
+            // Show notification after 3 seconds
+            setTimeout(showNotification, 3000);
+            
+            // Mobile menu event listener
+            document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+            
+            // AI Assistant click
+            document.getElementById('aiAssistant').addEventListener('click', function() {
+                alert('AI Assistant is ready to help you!');
+            });
+            
+            // Add scroll animations
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            createChart();
+        });
+    </script>
+</body>
+</html>
